@@ -37,6 +37,32 @@ class MainNavigationController extends StatefulWidget {
 
 class _MainNavigationControllerState extends State<MainNavigationController> {
   int _currentIndex = 0;
+  List<Map<String, dynamic>> getFilteredCourses() {
+  List<Map<String, dynamic>> allCourses = [];
+
+  // On récupère TOUS les cours de TOUTES les catégories
+  coursesData.forEach((key, value) {
+    // On ajoute la catégorie à chaque cours pour pouvoir filtrer dessus après
+    for (var course in value) {
+      allCourses.add({...course, 'category': key}); 
+    }
+  });
+
+  return allCourses.where((course) {
+    // 1. Logique de recherche (Titre ou Instructeur)
+    bool matchesSearch = course['title'].toLowerCase().contains(searchQuery.toLowerCase()) || 
+                         course['instructor'].toLowerCase().contains(searchQuery.toLowerCase());
+
+    // 2. Logique de catégorie (On vérifie si la catégorie du cours est dans les filtres cochés)
+    // CORRECTION : suppression de la parenthèse en trop à la fin
+    bool matchesCategory = selectedSearchFilters.isEmpty || 
+                           selectedSearchFilters.contains(course['category']);
+
+    return matchesSearch && matchesCategory;
+  }).toList();
+}
+
+  
   String selectedCategory = "Web";
   
   // Variables de recherche (Uniques et bien placées)
@@ -243,10 +269,41 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                 ),
                 onPressed: () {
-                  FocusScope.of(context).unfocus();
-                  print("Search: $searchQuery | Filters: $selectedSearchFilters");
-                },
-                child: const Text("SHOW RESULTS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+  FocusScope.of(context).unfocus(); // Ferme le clavier
+  
+  List<Map<String, dynamic>> results = getFilteredCourses();
+
+  // Affichage des résultats
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(25))),
+    builder: (context) => Container(
+      padding: const EdgeInsets.all(20),
+      height: MediaQuery.of(context).size.height * 0.7,
+      child: Column(
+        children: [
+          Text("${results.length} Résultat(s) trouvé(s)", style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Divider(),
+          Expanded(
+            child: results.isEmpty 
+              ? const Center(child: Text("Aucun cours ne correspond à votre recherche"))
+              : ListView.builder(
+                  itemCount: results.length,
+                  itemBuilder: (context, index) => ListTile(
+                    leading: const Icon(Icons.play_circle_fill, color: Color(0xFFF25F5C)),
+                    title: Text(results[index]['title']),
+                    subtitle: Text(results[index]['instructor']),
+                    trailing: Text(results[index]['price'], style: const TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+          ),
+        ],
+      ),
+    ),
+  );
+}, child: const Text("SHOW RESULTS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
             ),
           ),
@@ -254,6 +311,10 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
       ),
     );
   }
+
+
+
+
 }
 
 // --- TOUS LES WIDGETS EXTERNES RE-VÉRIFIÉS ---
