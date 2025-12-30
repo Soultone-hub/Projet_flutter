@@ -3,6 +3,14 @@ import 'dart:async';
 
 void main() => runApp(const MyApp());
 
+// --- DONNÉES GLOBALES (Accessibles partout sans erreur) ---
+final List<Map<String, dynamic>> globalCategories = [
+  {"name": "Design", "icon": Icons.brush_outlined},
+  {"name": "Web", "icon": Icons.code_rounded},
+  {"name": "Microsoft", "icon": Icons.grid_view},
+  {"name": "Flutter", "icon": Icons.flutter_dash},
+];
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -20,7 +28,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// --- LE CONTRÔLEUR DE NAVIGATION ---
 class MainNavigationController extends StatefulWidget {
   const MainNavigationController({super.key});
 
@@ -30,8 +37,13 @@ class MainNavigationController extends StatefulWidget {
 
 class _MainNavigationControllerState extends State<MainNavigationController> {
   int _currentIndex = 0;
-  String selectedCategory = "Web"; // Catégorie par défaut
+  String selectedCategory = "Web";
+  
+  // Variables de recherche (Uniques et bien placées)
+  final TextEditingController searchController = TextEditingController();
   List<String> selectedSearchFilters = [];
+  String searchQuery = "";
+
   final Map<String, List<Map<String, dynamic>>> coursesData = {
     "Web": [
       {"title": "Web Development", "instructor": "John Doe", "price": "8500/-BDT", "duration": "12h 52m", "date": "24-03-2023"},
@@ -56,7 +68,7 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
           index: _currentIndex,
           children: [
             _homeView(),
-            searchView(),
+            _searchView(), // Note le "_" pour la cohérence
             const Center(child: Text("My Courses")),
             const Center(child: Text("Favorite View")),
             const Center(child: Text("Profile")),
@@ -67,14 +79,13 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
     );
   }
 
-  // --- VUE ACCUEIL (HOME) ---
+  // --- VUE ACCUEIL ---
   Widget _homeView() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -83,22 +94,16 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
             ],
           ),
           const SizedBox(height: 25),
-
-          // Carrousel Automatique
           const AutoImageCarousel(),
           const SizedBox(height: 30),
-
-          // Section Catégories
           const SectionHeader(title: "Categories"),
           const SizedBox(height: 15),
           _buildCategoryList(),
           const SizedBox(height: 30),
-
-          // Section Cours
           SectionHeader(
             title: "Upcoming Courses",
             showSeeAll: true,
-            onSeeAllTap: () => _changeTab(1), // Envoie vers Search
+            onSeeAllTap: () => _changeTab(1),
           ),
           const SizedBox(height: 15),
           _buildCourseSlider(),
@@ -108,17 +113,10 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
   }
 
   Widget _buildCategoryList() {
-    final List<Map<String, dynamic>> categories = [
-      {"name": "Design", "icon": Icons.brush_outlined},
-      {"name": "Web", "icon": Icons.code_rounded},
-      {"name": "Microsoft", "icon": Icons.grid_view},
-      {"name": "Flutter", "icon": Icons.flutter_dash},
-    ];
-
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: categories.map((cat) {
+        children: globalCategories.map((cat) {
           final bool isSelected = selectedCategory == cat['name'];
           return CategoryItem(
             title: cat['name'],
@@ -132,7 +130,6 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
   }
 
   Widget _buildCourseSlider() {
-
     final courses = coursesData[selectedCategory] ?? [];
     return SizedBox(
       height: 285,
@@ -146,117 +143,123 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
     );
   }
 
-  Widget searchView() {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 20),
-        // BARRE DE RECHERCHE
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                height: 55,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-                ),
-                child: const TextField(
-                  decoration: InputDecoration(
-                    hintText: "Search for anything",
-                    border: InputBorder.none,
-                    icon: Icon(Icons.search, color: Colors.grey),
+  // --- VUE RECHERCHE ---
+  Widget _searchView() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  height: 55,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                  ),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: (value) => setState(() => searchQuery = value),
+                    decoration: const InputDecoration(
+                      hintText: "Search for anything",
+                      border: InputBorder.none,
+                      icon: Icon(Icons.search, color: Colors.grey),
+                    ),
                   ),
                 ),
               ),
-            ),
-            const SizedBox(width: 15),
-            Container(
-              height: 55, width: 55,
-              decoration: BoxDecoration(color: const Color(0xFFF25F5C), borderRadius: BorderRadius.circular(15)),
-              child: const Icon(Icons.tune, color: Colors.white),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 30),
-        const Text("Top Searches", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 15),
-
-        // TAGS STATIQUES (Exemples)
-        Wrap(
-          spacing: 10,
-          children: ["Web Design", "Flutter", "UX"].map((tag) => Chip(
-            label: Text(tag, style: const TextStyle(fontSize: 12)),
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          )).toList(),
-        ),
-
-        const SizedBox(height: 30),
-        const Text("Categories", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        
-        // --- SYNCHRONISATION AUTOMATIQUE ICI ---
-        Expanded(
-          child: ListView.builder(
-            itemCount: globalCategories.length, // Utilise ta liste globale
-            itemBuilder: (context, index) {
-              final catName = globalCategories[index]['name'];
-              final isChecked = selectedSearchFilters.contains(catName);
-
-              return CheckboxListTile(
-                contentPadding: EdgeInsets.zero,
-                title: Text(catName, style: const TextStyle(fontSize: 15)),
-                value: isChecked,
-                activeColor: const Color(0xFFF25F5C),
-                controlAffinity: ListTileControlAffinity.leading,
-                onChanged: (bool? value) {
-                  setState(() {
-                    if (value == true) {
-                      selectedSearchFilters.add(catName);
-                    } else {
-                      selectedSearchFilters.remove(catName);
-                    }
-                  });
-                },
-              );
-            },
-          ),
-        ),
-
-        // BOUTON DE RÉSULTATS
-        Padding(
-          padding: const EdgeInsets.only(bottom: 20),
-          child: SizedBox(
-            width: double.infinity,
-            height: 55,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFF25F5C),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              const SizedBox(width: 15),
+              GestureDetector(
+                onTap: () => setState(() {
+                  selectedSearchFilters.clear();
+                  searchController.clear();
+                  searchQuery = "";
+                }),
+                child: Container(
+                  height: 55, width: 55,
+                  decoration: BoxDecoration(color: const Color(0xFFF25F5C), borderRadius: BorderRadius.circular(15)),
+                  child: const Icon(Icons.refresh, color: Colors.white),
+                ),
               ),
+            ],
+          ),
+          const SizedBox(height: 30),
+          const Text("Top Searches", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 15),
+          Wrap(
+            spacing: 10,
+            children: ["Web", "Flutter", "Design"].map((tag) => ActionChip(
+              label: Text(tag),
               onPressed: () {
-                print("Filtres sélectionnés : $selectedSearchFilters");
-                // Ici tu pourras filtrer tes cours
+                setState(() {
+                  searchController.text = tag;
+                  searchQuery = tag;
+                });
               },
-              child: const Text("SHOW RESULTS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            )).toList(),
+          ),
+          const SizedBox(height: 30),
+          const Text("Categories", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          Expanded(
+            child: ListView.builder(
+              itemCount: globalCategories.length,
+              itemBuilder: (context, index) {
+                final catName = globalCategories[index]['name'];
+                final isChecked = selectedSearchFilters.contains(catName);
+                return CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(catName),
+                  value: isChecked,
+                  activeColor: const Color(0xFFF25F5C),
+                  controlAffinity: ListTileControlAffinity.leading,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value == true) {
+                        selectedSearchFilters.add(catName);
+                      } else {
+                        selectedSearchFilters.remove(catName);
+                      }
+                    });
+                  },
+                );
+              },
             ),
           ),
-        ),
-      ],
-    ),
-  );
-}}
+          Padding(
+            padding: const EdgeInsets.only(bottom: 20),
+            child: SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF25F5C),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                ),
+                onPressed: () {
+                  FocusScope.of(context).unfocus();
+                  print("Search: $searchQuery | Filters: $selectedSearchFilters");
+                },
+                child: const Text("SHOW RESULTS", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
+// --- TOUS LES WIDGETS EXTERNES RE-VÉRIFIÉS ---
 
-// --- COMPOSANT : CARROUSEL AUTO ---
 class AutoImageCarousel extends StatefulWidget {
   const AutoImageCarousel({super.key});
-
   @override
   State<AutoImageCarousel> createState() => _AutoImageCarouselState();
 }
@@ -327,7 +330,6 @@ class _AutoImageCarouselState extends State<AutoImageCarousel> {
   }
 }
 
-// --- COMPOSANT : CARTE DE COURS ---
 class CourseCard extends StatelessWidget {
   final Map<String, dynamic> course;
   const CourseCard({super.key, required this.course});
@@ -350,7 +352,7 @@ class CourseCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-                child: Container(height: 130, color: Colors.grey[200], child: const Icon(Icons.image, size: 40, color: Colors.white)),
+                child: Container(height: 130, width: double.infinity, color: Colors.grey[200], child: const Icon(Icons.image, size: 40, color: Colors.white)),
               ),
               Positioned(
                 bottom: -15, left: 15,
@@ -395,7 +397,6 @@ class CourseCard extends StatelessWidget {
   }
 }
 
-// --- COMPOSANTS UI MINEURS ---
 class SectionHeader extends StatelessWidget {
   final String title;
   final bool showSeeAll;
@@ -468,11 +469,3 @@ class CustomFooter extends StatelessWidget {
     );
   }
 }
-
-final List<Map<String, dynamic>> globalCategories = [
-  {"name": "Design", "icon": Icons.brush_outlined},
-  {"name": "Web", "icon": Icons.code_rounded},
-  {"name": "Microsoft", "icon": Icons.grid_view},
-  {"name": "Flutter", "icon": Icons.flutter_dash},
-];
-
