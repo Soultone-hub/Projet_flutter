@@ -76,11 +76,81 @@ class lesson extends StatelessWidget {
         children: [
           Positioned(
             right: 10, bottom: 0,
-            child: Icon(Icons.school, size: 80, color: Colors.white70),
-          )
+            child: Icon(Icons.school, size: 100, color: Colors.blue.withValues(alpha:0.2)),
+          ),
+          const Padding(
+            padding: EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("MEGA", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
+                Text("SALE", style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.red)),
+                Text("60% OFF", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
         ],
       ),
     );
   }
 
+Widget buildCategoriesRow() {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      categoryItem("Design", Icons.brush, Colors.orange),
+      categoryItem("Web", Icons.code, Colors.pink),
+      categoryItem("Microsoft", Icons.computer, Colors.blue),
+    ],
+  );
+}
+
+
+Widget categoryItem(String title, IconData icon, Color color) {
+  return Container(
+    width: 85,
+    padding: EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(15),
+    ),
+    child: Column(
+      children: [
+        Icon(icon, size: 30, color: color),
+        const SizedBox(height: 10),
+        Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+      ],
+    ),
+  );
+}
+Widget buildBottomNAv() {
+  return BottomNavigationBar(
+    type: BottomNavigationBarType.fixed,
+    selectedItemColor: Colors.redAccent,
+    unselectedItemColor: Colors.grey,
+    items: const [
+      BottomNavigationBarItem(
+        icon: Icon(Icons.home),
+        label: 'Home',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.search),
+        label: 'Search',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.play_circle_outline),
+        label: 'COurses',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.favorite_border),
+        label: 'Favorites',
+      ),
+      BottomNavigationBarItem(
+        icon: Icon(Icons.person_outline),
+        label: 'Profile',
+      ),
+    ],
+  );
+}
 }
