@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 void main() {
   // ICI : On lance MyApp et non MonApp directement
@@ -28,36 +29,109 @@ class MonApp extends StatefulWidget {
 
 class _MonAppState extends State<MonApp>{
   int _currentIndex = 0;
-  late List<Widget> _pages;
+  String selectedCategory = ""; // Catégorie par défaut
+  late PageController _pageController;
+  int _currentPage = 0;
+  late java.util.Timer _timer;
 
   @override
-  void initState(){
-    super.initState();
-    _pages = [
-      homeView(),      // Index 0
-      searchView(),    // Index 1
-      const Center(child: Text("My Courses")), // Index 2
-      favoriteView(),  // Index 3
-      const Center(child: Text("Profile")),    // Index 4
-    ];
-  }
-
-  @override
-  Widget build(BuildContext context){
-    return Scaffold(
-      
-      backgroundColor: const Color(0xFFFDF0F3), 
-      body: SafeArea(
-        child: IndexedStack(
-          index: _currentIndex,
-          children: _pages,
-        ),
+Widget build(BuildContext context){
+  return Scaffold(
+    backgroundColor: const Color(0xFFFDF0F3), 
+    body: SafeArea(
+      child: IndexedStack(
+        index: _currentIndex,
+        children: [
+          homeView(),    // APPEL DIRECT
+          searchView(),
+          const Center(child: Text("My Courses")),
+          favoriteView(),
+          const Center(child: Text("Profile")),
+        ],
       ),
-      bottomNavigationBar: buildFooter(),
-    );
-  }
+    ),
+    bottomNavigationBar: buildFooter(),
+  );
+}
 
  
+ Widget homeView() {
+ return SingleChildScrollView(
+    padding: const EdgeInsets.all(20),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 30),
+        buildImageCarousel(),
+        const SizedBox(height: 30),
+        // 1. HEADER (On garde ta structure Row)
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+          children: const [Icon(Icons.grid_view_rounded, size: 28), Icon(Icons.notifications_none_rounded, size: 28)]
+        ),
+        const SizedBox(height: 25),
+
+        // 2. BANNIÈRE PROMO (Structure à remplir)
+        
+        
+        buildSectionHeader("Categories"),
+        const SizedBox(height: 15),
+        
+        // Liste horizontale des catégories
+        SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: categories.map((cat) {
+                return buildCategoryItem(
+                  cat['name'], 
+                  cat['icon'], 
+                  selectedCategory == cat['name'], 
+                  () {
+                    setState(() {
+                      // Si on clique sur une catégorie déjà active, on la désactive
+                      if (selectedCategory == cat['name']) {
+                        selectedCategory = "";
+                      } else {
+                        selectedCategory = cat['name'];
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+        
+        const SizedBox(height: 30),
+buildSectionHeader(
+  "Upcoming Courses", 
+  showSeeAll: true,
+  onSeeAllTap: () {
+    setState(() {
+      _currentIndex = 1; // Change l'onglet vers Search
+    });
+  },
+),        const SizedBox(height: 15),
+
+        // Liste des cours qui change selon selectedCategory
+        SizedBox(
+          height: 280,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: coursesData[selectedCategory]?.length ?? 0,
+            itemBuilder: (context, index) {
+              final course = coursesData[selectedCategory]![index];
+              return buildCourseCard(course);
+            },
+          ),
+        ),
+        
+      ],
+    ),
+  );
+}
+
+
+
   Widget buildFooter(){
     return Container(
       decoration: const BoxDecoration(
@@ -85,67 +159,16 @@ class _MonAppState extends State<MonApp>{
     );
   }
 
-  
+final List<Map<String, dynamic>> categories = [
+  {"name": "Design", "icon": Icons.brush_outlined},
+  {"name": "Web", "icon": Icons.code_rounded},
+  {"name": "Microsoft", "icon": Icons.grid_view},
+  {"name": "Flutter", "icon": Icons.flutter_dash},
+  {"name": "Mobile", "icon": Icons.phone_android},
+  {"name": "JAVA", "icon": Icons.coffee_maker_rounded},
+];  
 
-  Widget homeView() {
-  return SingleChildScrollView(
-    padding: const EdgeInsets.all(20),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, 
-          children: const [Icon(Icons.grid_view_rounded, size: 28), Icon(Icons.notifications_none_rounded, size: 28)]
-        ),
-        const SizedBox(height: 25),
-
-        Container(
-          height: 160, 
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: const Color(0xFF003D4C), // Bleu foncé du modèle
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: const Center(child: Text("Bannière Promo (Stack)", style: TextStyle(color: Colors.white))),
-        ),
-        const SizedBox(height: 30),
-
-        buildSectionHeader("Categories"),
-        const SizedBox(height: 15),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              buildCategoryItem("Design", Icons.brush_outlined),
-              buildCategoryItem("Web", Icons.code_rounded, isSelected: true), // État Web sélectionné
-              buildCategoryItem("Microsoft", Icons.grid_view),
-              buildCategoryItem("Flutter", Icons.flutter_dash),
-            ],
-          ),
-        ),
-        const SizedBox(height: 30),
-
-        buildSectionHeader("Upcoming Courses", showSeeAll: true),
-        const SizedBox(height: 15),
-        Container(height: 250, color: Colors.transparent, child: const Center(child: Text("Zone des Cartes"))),
-        SizedBox(
-            height: 260, // Hauteur fixe pour la liste horizontale
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: coursesData[selectedCategory]?.length ?? 0,
-              itemBuilder: (context, index) {
-                final course = coursesData[selectedCategory]![index];
-                return buildCourseCard(course);
-              },
-  ),
-),
-      ],
-      
-    ),
-  );
-}
-
-  Widget searchView() {
+   Widget searchView() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -185,7 +208,7 @@ class _MonAppState extends State<MonApp>{
       ],
     );
   }
-  Widget buildSectionHeader(String title, {bool showSeeAll = false}) {
+  Widget buildSectionHeader(String title, {bool showSeeAll = false, VoidCallback? onSeeAllTap}) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     children: [
@@ -194,46 +217,49 @@ class _MonAppState extends State<MonApp>{
         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
       if (showSeeAll)
-        const Text(
-          "See all",
-          style: TextStyle(color: Color(0xFFF25F5C), fontWeight: FontWeight.bold),
-        ),
+          GestureDetector(
+            onTap: onSeeAllTap,
+            child: const Text(
+              "See All",
+              style: TextStyle( color: Color(0xFFF25F5C), fontWeight: FontWeight.bold),
+            ),
+          )
     ],
   );
 }
-Widget buildCategoryItem(String title, IconData icon, {bool isSelected = false}) {
-  return Container(
-    width: 85,
-    margin: const EdgeInsets.only(right: 15),
-    padding: const EdgeInsets.symmetric(vertical: 15),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      // Bordure uniquement si sélectionné
-      border: isSelected 
-          ? Border.all(color: const Color(0xFFF25F5C).withOpacity(0.2), width: 2) 
-          : null,
-      boxShadow: [
-        if (!isSelected) BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)
-      ],
-    ),
-    child: Column(
-      children: [
-        Icon(
-          icon, 
-          color: isSelected ? const Color(0xFFF25F5C) : Colors.black87, 
-          size: 28
-        ),
-        const SizedBox(height: 8),
-        Text(
-          title,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            color: isSelected ? const Color(0xFFF25F5C) : Colors.black54,
+Widget buildCategoryItem(String title, IconData icon,bool isSelected, VoidCallback onTap) {
+  return GestureDetector(
+    onTap: onTap, // Déclenche le changement d'état
+    behavior: HitTestBehavior.opaque,
+    child: Container(
+      width: 85,
+      margin: const EdgeInsets.only(right: 15),
+      padding: const EdgeInsets.symmetric(vertical: 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: isSelected 
+            ? Border.all(color: const Color(0xFFF25F5C).withOpacity(0.5), width: 2) 
+            : null,
+      ),
+      child: Column(
+        children: [
+          Icon(
+            icon, 
+            color: isSelected ? const Color(0xFFF25F5C) : Colors.black87, 
+            size: 28
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              color: isSelected ? const Color(0xFFF25F5C) : Colors.black54,
+            ),
+          ),
+        ],
+      ),
     ),
   );
 }
@@ -323,13 +349,59 @@ Widget buildCourseCard(Map<String, dynamic> course) {
 final Map<String, List<Map<String, dynamic>>> coursesData = {
   "Web": [
     {"title": "Web Development", "instructor": "John Doe", "price": "8500/-BDT", "duration": "12h 52m", "date": "24-03-2023"},
-    {"title": "React Basics", "instructor": "Sarah W.", "price": "5500/-BDT", "duration": "08h 20m", "date": "12-04-2023"},
+    {"title": "React Basics", "instructor": "Sarah W.", "price": "5500/-BDT", "duration": "08h 20m", "date": "12-04-2023"}, 
   ],
   "Design": [
     {"title": "UI/UX Design", "instructor": "Jane Smith", "price": "7000/-BDT", "duration": "15h 30m", "date": "01-05-2023"},
   ],
 };
 
-String selectedCategory = "Web"; // Catégorie par défaut
+Widget buildImageCarousel() {
+  // Liste de tes images (Locales ou URL)
+  final List<String> bannerImages = [
+    'https://images.unsplash.com/photo-1501504905953-f83a699573f2?q=80&w=500', // Remplace par tes assets
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=500',
+  ];
+
+  return Column(
+    children: [
+      SizedBox(
+        height: 160,
+        width: double.infinity,
+        child: PageView.builder(
+          itemCount: bannerImages.length,
+          itemBuilder: (context, index) {
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(25),
+                image: DecorationImage(
+                  image: NetworkImage(bannerImages[index]), // Ou AssetImage
+                  fit: BoxFit.cover,
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      const SizedBox(height: 10),
+      // Tes petits points d'indicateurs
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: List.generate(bannerImages.length, (index) {
+          return Container(
+            margin: const EdgeInsets.symmetric(horizontal: 2),
+            width: index == 0 ? 18 : 5, // Le premier est plus long
+            height: 5,
+            decoration: BoxDecoration(
+              color: index == 0 ? const Color(0xFFF25F5C) : Colors.black12,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          );
+        }),
+      ),
+    ],
+  );
+}
 
 }
