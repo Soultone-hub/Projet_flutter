@@ -44,17 +44,24 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
   List<Map<String, dynamic>> favoriteCourses = [];
 
   final Map<String, List<Map<String, dynamic>>> coursesData = {
-    "Web": [
-      {"title": "Web Development", "instructor": "Syed Tanvir Ahmed", "price": "4000/-BDT", "duration": "12h 52m", "date": "24-03-2023"},
-      {"title": "Back End Development", "instructor": "John Doe", "price": "7000/-BDT", "duration": "12h 52m", "date": "24-03-2023"},
-    ],
-    "Design": [
-      {"title": "UI Design", "instructor": "John Doe", "price": "3000/-BDT", "duration": "12h 52m", "date": "24-03-2023"},
-    ],
-    "Flutter": [
-      {"title": "Full Stack Web", "instructor": "John Doe", "price": "7000/-BDT", "duration": "12h 52m", "date": "24-03-2023"},
-    ],
-  };
+  "Web": [
+    {"title": "Web Development", "instructor": "Syed Tanvir Ahmed", "price": "4000/-BDT","image": "assets/images/image01.jpg", "duration": "12h 52m", "date": "24-03-2023"},
+    {"title": "Back End Development", "instructor": "John Doe", "price": "7000/-BDT", "image": "assets/images/image03.jpg", "duration": "12h 52m", "date": "24-03-2023"},
+  ],
+  "Design": [
+    {"title": "UI Design Masterclass", "instructor": "Sarah Design", "price": "3500/-BDT", "image": "assets/images/image02.jpg", "duration": "10h 15m", "date": "15-05-2023"},
+    {"title": "UX Research Basics", "instructor": "Alex Smith", "price": "2500/-BDT", "image": "assets/images/image04.jpg", "duration": "05h 40m", "date": "20-05-2023"},
+    {"title": "Figma for Beginners", "instructor": "Jane Doe", "price": "4500/-BDT", "image": "assets/images/image04.jpg", "duration": "08h 20m", "date": "02-06-2023"},
+  ],
+  "Microsoft": [
+    {"title": "Excel for Data Science", "instructor": "Microsoft Certified", "price": "5000/-BDT", "image": "assets/images/image01.jpg", "duration": "20h 00m", "date": "10-04-2023"},
+    {"title": "Azure Cloud Fundamentals", "instructor": "Kevin Smith", "price": "9500/-BDT", "image": "assets/images/image03.jpg", "duration": "25h 30m", "date": "12-04-2023"},
+  ],
+  "Flutter": [
+    {"title": "Flutter UI Widgets", "instructor": "Alex H.", "price": "6000/-BDT", "image": "assets/images/image05.jpg", "duration": "15h 10m", "date": "10-06-2023"},
+    {"title": "Flutter State Management", "instructor": "Dart Pro", "price": "8000/-BDT", "image": "assets/images/image05.jpg", "duration": "18h 45m", "date": "15-06-2023"},
+  ],
+};
 
   List<Map<String, dynamic>> getFilteredCourses() {
     List<Map<String, dynamic>> allCourses = [];
@@ -181,7 +188,7 @@ class _MainNavigationControllerState extends State<MainNavigationController> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(15),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
                       ),
                       child: TextField(
                         controller: searchController,
@@ -340,16 +347,24 @@ class FavoriteCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 5))],
       ),
       child: Row(
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(15),
-            child: Container(
-              width: 85, height: 85,
-              color: Colors.grey[200],
-              child: const Icon(Icons.image, color: Colors.white, size: 30),
+            child: SizedBox(
+              width: 80,
+              height: 80,
+              child: course['image'] != null
+                  ? Image.asset(
+                      course['image'],
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      color: Colors.grey[200],
+                      child: const Icon(Icons.image, color: Colors.grey),
+                    ),
             ),
           ),
           const SizedBox(width: 12),
@@ -419,11 +434,11 @@ class CourseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 260,
-      margin: const EdgeInsets.only(right: 20, bottom: 10),
+      margin: const EdgeInsets.only(right: 20, bottom: 10,),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: const Color.fromARGB(255, 254, 253, 253),
         borderRadius: BorderRadius.circular(25),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
       ),
       child: Column(
         children: [
@@ -431,7 +446,7 @@ class CourseCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-                child: Container(height: 130, width: double.infinity, color: Colors.grey[200], child: const Icon(Icons.image, size: 40, color: Colors.white)),
+                child: Container(height: 130, width: double.infinity, color: Colors.grey[200], child: Image.asset(course['image'], fit: BoxFit.cover)),
               ),
               Positioned(
                 top: 10, right: 10,
@@ -439,7 +454,7 @@ class CourseCard extends StatelessWidget {
                   onTap: onFavorite,
                   child: CircleAvatar(
                     backgroundColor: Colors.white,
-                    child: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, color: isFavorite ? Colors.red : Colors.grey),
+                    child: Icon(isFavorite ? Icons.favorite : Icons.favorite_border, color: isFavorite ? const Color.fromARGB(255, 245, 78, 67) : const Color.fromARGB(255, 30, 13, 13)),
                   ),
                 ),
               ),
@@ -456,7 +471,14 @@ class CourseCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(children: [const Icon(Icons.access_time, size: 14), const SizedBox(width: 4), Text(course['duration'], style: const TextStyle(fontSize: 11))]),
+                    Row(children: [
+                      const Icon(Icons.access_time, size: 11, color: Colors.grey),
+                      const SizedBox(width: 4), Text(course['duration'], 
+
+                      style: const TextStyle(fontSize: 11))
+                      
+                      ]
+                      ),
                     Text(course['date'], style: const TextStyle(fontSize: 11)),
                   ],
                 )
@@ -491,18 +513,57 @@ class CategoryItem extends StatelessWidget {
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
-  const CategoryItem({super.key, required this.title, required this.icon, required this.isSelected, required this.onTap});
+
+  const CategoryItem({
+    super.key, 
+    required this.title, 
+    required this.icon, 
+    required this.isSelected, 
+    required this.onTap
+  });
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 85, margin: const EdgeInsets.only(right: 15), padding: const EdgeInsets.symmetric(vertical: 15),
+        width: 85,
+        margin: const EdgeInsets.only(right: 15, bottom: 10, top: 5), // Ajout de marge pour ne pas couper l'ombre
+        padding: const EdgeInsets.symmetric(vertical: 15),
         decoration: BoxDecoration(
-          color: Colors.white, borderRadius: BorderRadius.circular(20),
-          border: isSelected ? Border.all(color: const Color(0xFFF25F5C), width: 2) : null,
+          color: isSelected ? const Color(0xFFFFE5E5) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          // --- LOGIQUE DE L'OMBRE ---
+          boxShadow: [
+            BoxShadow(
+              color: isSelected 
+                  ? const Color(0xFFF25F5C).withValues(alpha: 0.2) // Ombre colorée si sélectionné
+                  : Colors.black.withValues(alpha: 0.08),         // Ombre légère si non sélectionné
+              blurRadius: 10,
+              offset: const Offset(0, 4), // Décalage vers le bas
+            ),
+          ],
+          border: isSelected 
+              ? Border.all(color: const Color(0xFFF25F5C), width: 2) 
+              : Border.all(color: const Color.fromARGB(250, 0, 0, 0), width: 2),
         ),
-        child: Column(children: [Icon(icon), const SizedBox(height: 8), Text(title, style: const TextStyle(fontSize: 12))]),
+        child: Column(
+          children: [
+            Icon(
+              icon, 
+              color: isSelected ? const Color(0xFFF25F5C) : Colors.black54
+            ),
+            const SizedBox(height: 8),
+            Text(
+              title, 
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? const Color(0xFFF25F5C) : const Color.fromARGB(231, 14, 14, 14),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -522,9 +583,11 @@ class _AutoImageCarouselState extends State<AutoImageCarousel> {
   int _currentPage = 0;
   
   final List<String> images = [
-    'https://images.unsplash.com/photo-1501504905953-f83a699573f2?q=80&w=500',
-    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=500',
-    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=500',
+    'assets/images/image00.jpg',
+    'assets/images/image01.jpg',
+    'assets/images/image02.jpg',
+    'assets/images/image03.jpg',
+    'assets/images/image04.jpg',
   ];
 
   @override
@@ -571,11 +634,11 @@ class _AutoImageCarouselState extends State<AutoImageCarousel> {
             },
             itemBuilder: (context, index) {
               return Container(
-                margin: const EdgeInsets.symmetric(horizontal: 5),
+                margin: const EdgeInsets.symmetric(horizontal: 0.00001),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
+                  borderRadius: BorderRadius.circular(10),
                   image: DecorationImage(
-                    image: NetworkImage(images[index]),
+                    image: AssetImage(images[index]),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -596,7 +659,7 @@ class _AutoImageCarouselState extends State<AutoImageCarousel> {
               decoration: BoxDecoration(
                 color: _currentPage == index 
                     ? const Color(0xFFF25F5C) 
-                    : Colors.grey.withOpacity(0.5),
+                    : Colors.grey.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(10),
               ),
             );
