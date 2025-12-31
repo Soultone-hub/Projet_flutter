@@ -370,10 +370,20 @@ class FavoriteCard extends StatelessWidget {
                   children: [
                     Text(course['price'], style: const TextStyle(color: Color(0xFFF25F5C), fontWeight: FontWeight.bold, fontSize: 14)),
                     const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(color: const Color(0xFFFDE0E0), borderRadius: BorderRadius.circular(8)),
-                      child: const Text("Buy", style: TextStyle(color: Color(0xFFF25F5C), fontWeight: FontWeight.bold, fontSize: 12)),
+                    GestureDetector(
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text("Course added to cart!")),
+                        );
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFDE0E0), 
+                          borderRadius: BorderRadius.circular(8)
+                        ),
+                        child: const Text("Buy", style: TextStyle(color: Color(0xFFF25F5C), fontWeight: FontWeight.bold, fontSize: 12)),
+                      ),
                     ),
                   ],
                 ),
